@@ -1,6 +1,10 @@
 use std::fmt;
 
 pub fn sha1(input: &[u8]) -> SHA1Digest {
+    sha1_rounds(input, 80)
+}
+
+pub fn sha1_rounds(input: &[u8], rounds: usize) -> SHA1Digest {
     let original_input_length = input.len();
 
     let mut input = padded(input.into());
@@ -24,7 +28,8 @@ pub fn sha1(input: &[u8]) -> SHA1Digest {
         let mut c = h2;
         let mut d = h3;
         let mut e = h4;
-        for i in 0..80 {
+        for k in 0..rounds {
+            let i = k % 80;
             let round = i / 20;
             let (f, k) = match round {
                 0 => (
@@ -116,15 +121,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_debug_format() {
+    fn test_sha1_debug_format() {
         let hash = SHA1Digest::new([
-            0x7F2C9FDEu32, 0x3A1B5ED2u32, 0x5AE8D3FAu32, 0x9B7DD10Bu32, 0xB3B40D10u32
+            u32::from_be(0x7F2C9FDEu32), u32::from_be(0x3A1B5ED2u32),
+            u32::from_be(0x5AE8D3FAu32), u32::from_be(0x9B7DD10Bu32),
+            u32::from_be(0xB3B40D10u32)
         ]);
         assert_eq!(format!("{:?}", hash), "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3");
     }
 
     #[test]
-    fn test_sha1() {
+    fn test_sha1_simple() {
         let hash = sha1(b"The quick brown fox jumps over the lazy dog");
         assert_eq!(format!("{:?}", hash), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
     }

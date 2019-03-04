@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub fn md5(input: &[u8]) -> MD5Digest {
+pub fn md5_rounds(input: &[u8], rounds: usize) -> MD5Digest {
     let original_input_length = input.len();
 
     let mut input = padded(input.into());
@@ -17,7 +17,8 @@ pub fn md5(input: &[u8]) -> MD5Digest {
         let mut b = b0;
         let mut c = c0;
         let mut d = d0;
-        for i in 0..64 {
+        for k in 0..rounds {
+            let i = k % 64;
             let round = i / 16;
             let (mut f, g) = match round {
                 0 => (
@@ -50,6 +51,10 @@ pub fn md5(input: &[u8]) -> MD5Digest {
     }
 
     MD5Digest::new([a0, b0, c0, d0])
+}
+
+pub fn md5(input: &[u8]) -> MD5Digest {
+    md5_rounds(input, 64)
 }
 
 fn padded(mut input: Vec<u8>) -> Vec<u8> {
@@ -128,7 +133,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_debug_format() {
+    fn test_md5_debug_format() {
         let hash = MD5Digest::new([
             u32::from_be(0x9e107d9d), u32::from_be(0x372bb682),
             u32::from_be(0x6bd81d35), u32::from_be(0x42a419d6)
@@ -137,7 +142,7 @@ mod tests {
     }
 
     #[test]
-    fn test_md5() {
+    fn test_md5_simple() {
         let hash = md5(b"The quick brown fox jumps over the lazy dog");
         assert_eq!(format!("{:?}", hash), "9e107d9d372bb6826bd81d3542a419d6");
     }
