@@ -103,6 +103,15 @@ impl SHA1Digest {
             values: input.into(),
         }
     }
+
+    pub fn diff_with(&self, other: &SHA1Digest) -> u32 {
+        self.values.iter().zip(other.values.iter())
+            .fold(0, |sum, pair| sum + diff(*pair.0, *pair.1))
+    }
+}
+
+fn diff(first: u32, second: u32) -> u32 {
+    (first ^ second).count_ones()
 }
 
 impl fmt::Debug for SHA1Digest {
